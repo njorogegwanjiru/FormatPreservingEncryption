@@ -10,7 +10,9 @@ import javax.crypto.SecretKey;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.Timestamp;
 import java.text.DateFormat;
+import java.text.Format;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -19,7 +21,7 @@ import java.util.regex.Pattern;
 
 public class Decrypt {
     private static final String aTweak = "1867687968866456789";
-    private static final char[] specialCharacters = {'@', '(', ')', ' ', '.', '*', '+', '-', '#', '[', ']', '|', '{', '}', ',', '/', '"', '"', ';', ':'};
+    private static final char[] specialCharacters = {'@', '(', ')', ' ', '.', '*', '+', '-', '#', '[', ']', '|', '{', '}', ',', '/', '"', '"', ';', ':', '$', '%'};
     private static SecretKey secretKey;
 
     static {
@@ -137,13 +139,14 @@ public class Decrypt {
         return utfEncoded;
     }
 
-    public static void decryptHelper(Alphabet alphabet, String inputToDecrypt) {
+    public static void decryptHelper(Alphabet alphabet, String inputToDecrypt) throws ParseException {
         FormatPreservingEncryption formatPreservingEncryption = createFPEObject(alphabet);
         StringBuilder nonSpecialCharacters = new StringBuilder();
         StringBuilder plain = new StringBuilder();
 
         if (isTimestamp(inputToDecrypt)) {
             plain.append(formatPreservingEncryption.decrypt(inputToDecrypt, aTweak.getBytes()));
+
         } else {
             if (containsSpecialCharacters(inputToDecrypt)) {
                 LinkedHashMap<Integer, Character> specialCharactersIndexesMap = new LinkedHashMap<>();
@@ -175,19 +178,24 @@ public class Decrypt {
         }
 
         String plainText = plain.toString();
+        System.out.println("unixTimeStampHours " + plainText);
         System.out.println("Input: " + inputToDecrypt);
-        System.out.println("Decrypted Text: " + convertPlainTextToTimestamp(plainText));
+        long unixTimeStampMilliSeconds = Long.parseLong(plainText) *3600 *1000;
+        System.out.println("Decrypted Text: " + getStringFromUnixTimeStamp(unixTimeStampMilliSeconds));
     }
 
-    public static String convertPlainTextToTimestamp(String input) {
-        long plaintextValue = Long.parseLong(input);
-        long unixTimeStamp = plaintextValue / 3600;
-        Date date = new Date(unixTimeStamp * 1000);
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return dateFormat.format(date);
+    public static String getStringFromUnixTimeStamp(long input) throws ParseException {
+        System.out.println("input we are converting " + input);
+
+        Date date3 = new Date(Long.parseLong(String.valueOf(input)));
+        System.out.println(date3);
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        return format.format(date3);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ParseException {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Enter input To Decrypt here: ");

@@ -11,6 +11,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -144,10 +145,17 @@ public class Encrypt {
         StringBuilder cipher = new StringBuilder();
 
         if (isTimestamp(inputToEncrypt)) {
-            long unixTimestamp = getUnixTimestamp(inputToEncrypt);
-            cipher.append(formatPreservingEncryption.encrypt(String.valueOf(unixTimestamp * 3600), aTweak.getBytes()));
+            long unixTimestamp = getUnixTimestampFromString(inputToEncrypt);//seconds
+            long unixTimeStampHours = unixTimestamp / 3600;//hours
+
+            System.out.println("unixTimeStampHours "+unixTimeStampHours);
+            System.out.println("unixTimeStampMS "+unixTimeStampHours*3600*1000);
+
+            cipher.append(formatPreservingEncryption.encrypt(String.valueOf(unixTimeStampHours), aTweak.getBytes()));
+
         }
         else {
+
             if (containsSpecialCharacters(inputToEncrypt)) {
                 LinkedHashMap<Integer, Character> specialCharactersIndexesMap = new LinkedHashMap<>();
                 char[] inputChars = inputToEncrypt.toCharArray();
@@ -181,10 +189,10 @@ public class Encrypt {
         System.out.println("Encrypted Text: " + cipherText);
     }
 
-    public static long getUnixTimestamp(String input) throws ParseException {
+    public static long getUnixTimestampFromString(String input) throws ParseException {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = format.parse(input);
-        return date.getTime() / 1000;
+        return date.getTime()/1000 ;
     }
 
     public static void main(String[] args) throws ParseException {
